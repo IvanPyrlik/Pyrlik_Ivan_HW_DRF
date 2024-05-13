@@ -22,9 +22,20 @@ class User(AbstractUser):
 
 
 class Payments(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь', **NULLABLE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments', verbose_name='Пользователь',
+                             **NULLABLE)
     pay_day = models.DateTimeField(auto_now=True, verbose_name='Дата оплаты', **NULLABLE)
-    course_pay = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='Оплаченный курс', **NULLABLE)
-    lesson_pay = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name='Оплаченный урок', **NULLABLE)
+    course_pay = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='payments',
+                                   verbose_name='Оплаченный курс', **NULLABLE)
+    lesson_pay = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='payments',
+                                   verbose_name='Оплаченный урок', **NULLABLE)
     sum_pay = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма оплаты')
     pay_method = models.CharField(max_length=100, verbose_name='Способ оплаты', **NULLABLE)
+
+    def __str__(self):
+        return f'{self.user} - сумма оплаты: {self.sum_pay}'
+
+    class Meta:
+        verbose_name = 'Платеж'
+        verbose_name_plural = 'Платежи'
+        ordering = ('user', 'pay_day',)
