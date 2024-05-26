@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from lms.models import Course
 from users.models import Payments, User, Subscription
 from users.serializers import PaymentsSerializer, UserSerializer, SubscriptionSerializer
+from users.services import convert_rub_to_dollars, create_stripe_product, create_stripe_price, create_stripe_sessions
 
 
 class UserListApiView(ListAPIView):
@@ -32,6 +33,21 @@ class PaymentsListApiView(ListAPIView):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     search_fields = ('course_pay', 'lesson_pay', 'pay_method',)
     ordering_fields = ('pay_day',)
+
+
+class PaymentsCreateApiView(CreateAPIView):
+    serializer_class = PaymentsSerializer
+    queryset = Payments.objects.all()
+
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user)
+        amount_in_dollars = convert_rub_to_dollars(payment.amount)
+        product = create_stripe_product(payment)
+        price = create_stripe_price(amount_in_dollars, product)
+        session_link, session_id = create_stripe_sessions(price)
+        payment.pay_link = session_link
+        payment.session_id = session_id
+        payment.save()
 
 
 class SubscriptionApiView(APIView):
