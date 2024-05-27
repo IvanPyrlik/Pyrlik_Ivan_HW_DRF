@@ -13,20 +13,38 @@ class LessonSerializer(ModelSerializer):
 
 
 class CourseSerializer(ModelSerializer):
+    count_lessons = SerializerMethodField()
     lesson = LessonSerializer(many=True, read_only=True)
+
+    def get_count_lessons(self, obj):
+        return obj.lesson.all().count()
 
     class Meta:
         model = Course
-        fields = '__all__'
+        fields = ['name', 'description', 'preview', 'count_lessons', 'lesson']
         validators = [URLValidator(fields=['description'])]
 
 
 class CourseDetailSerializer(ModelSerializer):
     count_lessons = SerializerMethodField()
+    lessons_list = SerializerMethodField()
+    is_subscribed = SerializerMethodField()
+
+    def user_(self):
+        request = self.context.get('request', None)
+        if request:
+            return request.user
+        return None
+
+    def get_is_subscribed(self, course):
+        return course.subscription_set.filter(user=self.user_()).exists()
 
     def get_count_lessons(self, course):
-        return Course.objects.filter(lesson=course.lesson).count()
+        return Lesson.objects.filter(course=course).count()
+
+    def get_lessons_list(self, course):
+        return LessonSerializer(Lesson.objects.filter(course=course), many=True).data
 
     class Meta:
         model = Course
-        fields = ('name', 'count_lessons',)
+        fields = '__all__'

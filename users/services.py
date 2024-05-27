@@ -1,4 +1,5 @@
 import stripe
+from django.urls import reverse_lazy
 from forex_python.converter import CurrencyRates
 from config.settings import STRIPE_API_KEY
 
@@ -35,7 +36,7 @@ def create_stripe_sessions(price):
     Создаем сессию на оплату в страйпе.
     """
     session = stripe.checkout.Session.create(
-        success_url='http://127.0.0.1:8000/user/payments/',
+        success_url={reverse_lazy('user:payments_list')},
         line_items=[{'price': price.get('id'), 'quantity': 1}],
         mode='payment',
     )

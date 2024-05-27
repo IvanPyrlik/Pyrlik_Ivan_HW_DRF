@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView, CreateAPIView, get_object_or_404
@@ -63,8 +64,10 @@ class SubscriptionApiView(APIView):
         if sub_item.exists():
             sub_item.delete()
             message = 'Подписка удалена'
+            status_code = status.HTTP_204_NO_CONTENT
         else:
             Subscription.objects.create(user=user, course=course)
             message = 'Подписка добавлена'
+            status_code = status.HTTP_201_CREATED
 
-        return Response({'message': message})
+        return Response({'message': message}, status=status_code)
