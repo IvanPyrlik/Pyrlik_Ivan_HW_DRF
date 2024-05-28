@@ -55,11 +55,11 @@ class SubscriptionApiView(APIView):
 
     serializer_class = SubscriptionSerializer
 
-    def post(self, request, pk):
-        queryset = Course.objects.filter(pk=pk)
+    def post(self, *args, **kwargs):
         user = self.request.user
-        course = get_object_or_404(queryset=queryset)
-        sub_item = Subscription.objects.filter(course=course, user=user)
+        course_id = self.request.data.get('course')
+        course = get_object_or_404(Course, pk=course_id)
+        sub_item = Subscription.objects.filter(user=user, course=course_id)
 
         if sub_item.exists():
             sub_item.delete()

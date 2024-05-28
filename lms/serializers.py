@@ -16,7 +16,7 @@ class CourseSerializer(ModelSerializer):
     count_lessons = SerializerMethodField()
     lesson = LessonSerializer(many=True, read_only=True)
 
-    def get_count_lessons(self, obj):
+    def get_count_lessons(self, obj) -> int:
         return obj.lesson.all().count()
 
     class Meta:
@@ -36,13 +36,13 @@ class CourseDetailSerializer(ModelSerializer):
             return request.user
         return None
 
-    def get_is_subscribed(self, course):
+    def get_is_subscribed(self, course) -> bool:
         return course.subscription_set.filter(user=self.user_()).exists()
 
-    def get_count_lessons(self, course):
+    def get_count_lessons(self, course) -> int:
         return Lesson.objects.filter(course=course).count()
 
-    def get_lessons_list(self, course):
+    def get_lessons_list(self, course) -> list:
         return LessonSerializer(Lesson.objects.filter(course=course), many=True).data
 
     class Meta:
