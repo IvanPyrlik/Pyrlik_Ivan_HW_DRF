@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 
 from users.models import Payments, User, Subscription
 
@@ -21,4 +22,8 @@ class SubscriptionSerializer(ModelSerializer):
 
     class Meta:
         model = Subscription
-        fields = '__all__'
+        fields = ('course',)
+
+
+class SubscriptionResponse(serializers.Serializer):
+    message = serializers.CharField()

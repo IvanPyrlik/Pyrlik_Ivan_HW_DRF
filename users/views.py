@@ -1,14 +1,15 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import ListAPIView, CreateAPIView, get_object_or_404
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from yaml import serializer
 
-from lms.models import Course
 from users.models import Payments, User, Subscription
-from users.serializers import PaymentsSerializer, UserSerializer, SubscriptionSerializer
+from users.serializers import PaymentsSerializer, UserSerializer, SubscriptionSerializer, SubscriptionResponse
 from users.services import convert_rub_to_dollars, create_stripe_product, create_stripe_price, create_stripe_sessions
 
 
@@ -52,14 +53,22 @@ class PaymentsCreateApiView(CreateAPIView):
 
 
 class SubscriptionApiView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    serializer_class = SubscriptionSerializer
+
+    @swagger_auto_schema(
+        request_body=SubscriptionSerializer,
+        responses={
+            201: SubscriptionResponse(),
+            204: SubscriptionResponse(),
+        }
+    )
 
     def post(self, *args, **kwargs):
         user = self.request.user
-        course_id = self.request.data.get('course')
-        course = get_object_or_404(Course, pk=course_id)
-        sub_item = Subscription.objects.filter(user=user, course=course_id)
+        course = serializer.validated_data['course']
+
+        sub_item = Subscription.objects.filter(user=user, course=course)
 
         if sub_item.exists():
             sub_item.delete()

@@ -11,7 +11,7 @@ urlpatterns = [
     path('register/', UserCreateApiView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(permission_classes=(AllowAny,)), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(permission_classes=(AllowAny,)), name='token_refresh'),
-    path('sub/<int:pk>/', SubscriptionApiView.as_view(), name='sub'),
+    path('sub/', SubscriptionApiView.as_view(), name='sub'),
     path('payments/create/', PaymentsCreateApiView.as_view(), name='payments_create'),
     path('payments/', PaymentsListApiView.as_view(), name='payments_list'),
 ]
