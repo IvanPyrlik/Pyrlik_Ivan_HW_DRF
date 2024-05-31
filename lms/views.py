@@ -8,6 +8,8 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
 
 from users.permissions import IsModer, IsOwner
 
+from lms.tasks import send_update_info
+
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
@@ -31,6 +33,13 @@ class CourseViewSet(ModelViewSet):
         elif self.action == 'destroy':
             self.permission_classes = (IsOwner | ~IsModer,)
         return super().get_permissions()
+
+    def perform_update(self, serializer):
+        updated_course = serializer.save()
+        subject = f'Обновление для курса {updated_course.name}'
+        message = 'У вашего курса есть обновление'
+        send_update_info.delay(updated_course.id, subject, message)
+        updated_course.save()
 
 
 class LessonListApiView(ListAPIView):
